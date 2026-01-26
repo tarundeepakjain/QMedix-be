@@ -80,7 +80,8 @@ export const HospitalSignin=async(name,email,phone,password)=>{
     const {data:hospital,error:err}=await supabase
     .from("Hospital")
     .insert([{
-        id:user.id
+        id:user.id,
+        phone
     }])
     .select()
     .single();
