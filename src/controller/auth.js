@@ -14,11 +14,11 @@ class Auth{
         message:"patient signin succesfull",
         patient
         })
-        
+
         } catch (error) {
             next(error);
         }
-      
+
     }
     Doctorsignup=async(req,res,next)=>{
         try {
@@ -33,11 +33,11 @@ class Auth{
         message:"dcotor signin succesfull",
         doctor
         })
-        
+
         } catch (error) {
             next(error);
         }
-      
+
     }
     Hospitalsignup=async(req,res,next)=>{
         try {
@@ -52,11 +52,65 @@ class Auth{
         message:"hospital signin succesfull",
         hospital
         })
-        
+
         } catch (error) {
             next(error);
         }
-      
+
+    }
+
+    Patientlogin = async (req, res, next) => {
+        try {
+            const { email, password } = req.body;
+            if (!email || !password) {
+                return res.status(400).json({
+                    message: "Email and password required"
+                });
+            }
+            const result = await PatientLogin(email, password);
+            return res.status(200).json({
+                message: "Login successful",
+                ...result
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    Doctorlogin = async (req, res, next) => {
+        try {
+            const { email, password } = req.body;
+            if (!email || !password) {
+                return res.status(400).json({
+                    message: "Email and password required"
+                });
+            }
+            const result = await DoctorLogin(email, password);
+            return res.status(200).json({
+                message: "Login successful",
+                ...result
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    Hospitallogin = async (req, res, next) => {
+        try {
+            const { email, password } = req.body;
+            if (!email || !password) {
+                return res.status(400).json({
+                    message: "Email and password required"
+                });
+            }
+            const result = await HospitalLogin(email, password);
+            return res.status(200).json({
+                message: "Login successful",
+                ...result
+            });
+        } catch (error) {
+            next(error);
+        }
     }
 };
 
