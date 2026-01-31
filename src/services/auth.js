@@ -7,7 +7,7 @@ export const PatientSignin=async(name,email,address,phone,password)=>{
        phone,
         options: {
         data: {
-          name,
+          role:"patient",
         },
       },
     });
@@ -22,7 +22,6 @@ export const PatientSignin=async(name,email,address,phone,password)=>{
         address,
         phone,
         email,
-
     }])
     .select()
     .single();
@@ -37,8 +36,7 @@ export const DoctorSignin=async(name,email,address,phone,password,speciality)=>{
        phone,
         options: {
         data: {
-          name,
-          phone
+            role:"doctor",
         },
       },
     });
@@ -63,15 +61,14 @@ export const DoctorSignin=async(name,email,address,phone,password,speciality)=>{
     return doctor;
 };
 
-export const HospitalSignin=async(name,email,phone,password)=>{
+export const HospitalSignin=async(name,email,phone,password,address)=>{
     const {data,error}=await supabase.auth.signUp({
        email,
        password,
        phone,
         options: {
         data: {
-          name,
-
+          role:"hospital",
         },
       },
     });
@@ -82,12 +79,45 @@ export const HospitalSignin=async(name,email,phone,password)=>{
     .from("Hospital")
     .insert([{
         id:user.id,
-        phone
+        phone,
+        name,
+        address,
+        email
     }])
     .select()
     .single();
     if(err) throw err;
     return hospital;
+};
+
+export const StaffSignin=async(hospital_id,name,email,phone,password,address)=>{
+    const {data,error}=await supabase.auth.signUp({
+       email,
+       password,
+       phone,
+        options: {
+        data: {
+          role:"hospital-staff",
+        },
+      },
+    });
+    if(error) throw error;
+    const user=data.user;
+
+    const {data:hospital_staff,error:err}=await supabase
+    .from("Staff")
+    .insert([{
+        id:user.id,
+        hospital_id,
+        phone,
+        name,
+        address,
+        email
+    }])
+    .select()
+    .single();
+    if(err) throw err;
+    return hospital_staff;
 };
 
 export const PatientLogin = async (email, password) => {
@@ -106,9 +136,8 @@ export const PatientLogin = async (email, password) => {
     if (err) throw err;
 
     return {
-        user: data.user,
+        userId: data.user.id,
         patient,
-        session: data.session,
         role: 'patient'
     };
 };
@@ -129,9 +158,8 @@ export const DoctorLogin = async (email, password) => {
     if (err) throw err;
 
     return {
-        user: data.user,
+        userId: data.user.id,
         doctor,
-        session: data.session,
         role: 'doctor'
     };
 };
@@ -152,9 +180,30 @@ export const HospitalLogin = async (email, password) => {
     if (err) throw err;
 
     return {
-        user: data.user,
+        userId: data.user.id,
         hospital,
-        session: data.session,
         role: 'hospital'
     };
 };
+
+export const StaffLogin=async(email,password)=>{
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+    });
+    if (error) throw error;
+
+    const { data: staff, error: err } = await supabase
+    .from("Staff")
+    .select("*")
+    .eq("id", data.user.id)
+    .single();
+
+    if (err) throw err;
+
+    return {
+        userId: data.user.id,
+        staff,
+        role: 'hospital-staff'
+    };
+}
