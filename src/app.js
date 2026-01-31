@@ -2,30 +2,40 @@ import express from "express";
 import cors from "cors";
 import { errorHandler } from "./middleware/errorHandler.js";
 import dotenv from "dotenv";
+import session from "express-session";
+import cookieParser from "cookie-parser";
 import auth from "./routes/auth.js";
+
+
+dotenv.config();
+
 const app = express();
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // mobile apps send no origin
-    if (
-      origin.includes("localhost") ||
-      origin.includes("127.0.0.1") ||
-      origin.includes("192.168.") 
-    ) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
+
 
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(
+  session({
+    name: "qmedix.sid",
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: false // true when HTTPS
+    }
+  })
+);
 
 
 app.get("/health", (req, res) => {

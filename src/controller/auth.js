@@ -1,4 +1,13 @@
-import {PatientSignin,DoctorSignin,HospitalSignin} from "../services/auth.js";
+import {
+    PatientSignin,
+    DoctorSignin,
+    HospitalSignin,
+    PatientLogin,
+    DoctorLogin,
+    HospitalLogin,
+    StaffLogin,
+    StaffSignin
+} from "../services/auth.js";
 
 class Auth{
     Patientsignup=async(req,res,next)=>{
@@ -39,15 +48,16 @@ class Auth{
         }
 
     }
+
     Hospitalsignup=async(req,res,next)=>{
         try {
-        const {name,email,phone,password}=req.body;
-       if(!name || !password || !email || !phone){
+        const {name,email,phone,password,address}=req.body;
+       if(!name || !password || !email || !phone || !address){
             return res.status(400).json({
                 message:"All credentials required"
             })
         }
-        const hospital=await HospitalSignin(name,email,phone,password);
+        const hospital=await HospitalSignin(name,email,phone,password,address);
         return res.status(200).json({
         message:"hospital signin succesfull",
         hospital
@@ -59,6 +69,24 @@ class Auth{
 
     }
 
+    Staffsignup=async(req,res,next)=>{
+        try{
+            const {hospital_id,name,email,phone,password,address}=req.body;
+            if(!hospital_id || !name || !password || !email || !phone || !address){
+                    return res.status(400).json({
+                        message:"All credentials required"
+                    })
+            }
+            const staff=await StaffSignin(hospital_id,name,email,phone,password,address);
+            return res.status(200).json({
+                message:"Staff signin succesfull",
+                staff
+            })
+        }catch(error){
+            next(error);
+        }
+    }
+
     Patientlogin = async (req, res, next) => {
         try {
             const { email, password } = req.body;
@@ -68,10 +96,17 @@ class Auth{
                 });
             }
             const result = await PatientLogin(email, password);
+            
+            req.session.user={
+                id: result.userId,
+                role: result.role,
+                name: result.patient.name
+            };
             return res.status(200).json({
                 message: "Login successful",
-                ...result
+                patient: result.patient
             });
+
         } catch (error) {
             next(error);
         }
@@ -86,6 +121,13 @@ class Auth{
                 });
             }
             const result = await DoctorLogin(email, password);
+
+            req.session.user = {
+                id: result.userId,
+                role: result.role,
+                name: result.doctor.name    
+            };
+
             return res.status(200).json({
                 message: "Login successful",
                 ...result
@@ -104,6 +146,38 @@ class Auth{
                 });
             }
             const result = await HospitalLogin(email, password);
+
+            req.session.user = {
+                id: result.userId,
+                role: result.role,
+                name: result.hospital.name  
+            };
+
+            return res.status(200).json({
+                message: "Login successful",
+                ...result
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    Stafflogin = async(req,res,next) => {
+        try {
+            const { email, password } = req.body;
+            if (!email || !password) {
+                return res.status(400).json({
+                    message: "Email and password required"
+                });
+            }
+            const result = await StaffLogin(email, password);
+
+            req.session.user = {
+                id: result.userId,
+                role: result.role,
+                name: result.staff.name  
+            };
+
             return res.status(200).json({
                 message: "Login successful",
                 ...result
