@@ -1,7 +1,10 @@
 import express from "express";
 import Auth from "../controller/auth.js";
-import { PatientLogin } from "../services/auth.js";
+import { authenticate } from "../middleware/authMiddleware.js";
+
 const router=express.Router();
+router.post("/approve/:role/:id",authenticate,Auth.approve);
+router.post("/reject/:id",authenticate,Auth.reject);
 router.post("/signup/patient",Auth.Patientsignup);
 router.post("/signup/doctor",Auth.Doctorsignup);
 router.post("/signup/hospital",Auth.Hospitalsignup);

@@ -29,7 +29,7 @@ export const PatientSignin=async(name,email,address,phone,password)=>{
     return Patient;
 };
 
-export const DoctorSignin=async(name,email,address,phone,password,speciality)=>{
+export const DoctorSignin=async(name,email,address,phone,password,speciality,hospital_id)=>{
     const {data,error}=await supabase.auth.signUp({
        email,
        password,
@@ -44,17 +44,17 @@ export const DoctorSignin=async(name,email,address,phone,password,speciality)=>{
     const user=data.user;
 
     const {data:doctor,error:err}=await supabase
-    .from("Doctor")
-    .insert([{
+    .from("Approval_Requests")
+    .insert({
         id:user.id,
-        name,
-        address,
-        phone,
-        email,
-        hospital_id:null,
-        speciality
-
-    }])
+        role:"doctor",
+        hospital_id:hospital_id,
+        name:name,
+        phone:phone,
+        address:address,
+        email:email,
+        speciality:speciality
+    })
     .select()
     .single();
     if(err) throw err;
@@ -105,15 +105,16 @@ export const StaffSignin=async(hospital_id,name,email,phone,password,address)=>{
     const user=data.user;
 
     const {data:hospital_staff,error:err}=await supabase
-    .from("Staff")
-    .insert([{
+    .from("Approval_Requests")
+    .insert({
         id:user.id,
-        hospital_id,
-        phone,
-        name,
-        address,
-        email
-    }])
+        role:"hospital-staff",
+        hospital_id:hospital_id,
+        name:name,
+        phone:phone,
+        address:address,
+        email:email
+    })
     .select()
     .single();
     if(err) throw err;
@@ -206,4 +207,119 @@ export const StaffLogin=async(email,password)=>{
         staff,
         role: 'hospital-staff'
     };
-}
+};
+
+export const ApproveDoctor=async(id,hospital_id)=>{
+    const { data:details, error:err } = await supabase
+    .from('Approval_Requests')
+    .select()
+    .eq('id',id)
+    .eq('hospital_id',hospital_id)
+    .maybeSingle()
+
+    if(err) throw err;
+
+    if(!details || details.status!=="PENDING") return{
+        message:"Wrong Approve Request."
+    }
+
+    const {error} = await supabase
+    .from('Approval_Requests')
+    .update({'status':'APPROVED'})
+    .eq("id",id)
+
+    if(error) throw error;
+
+    const {name,address,phone,email,speciality}=details;
+
+    const {data:doctor,error:err1}=await supabase
+    .from("Doctor")
+    .insert({
+        id,
+        name,
+        address,
+        phone,
+        email,
+        hospital_id,
+        speciality
+
+    })
+    .select()
+    .maybeSingle();
+    if(err1) throw err1;
+    return {
+        details:doctor,
+        message:"Doctor Approved."
+    }
+
+};
+
+export const ApproveStaff=async(id,hospital_id)=>{
+    const { data:details, error:err } = await supabase
+    .from('Approval_Requests')
+    .select()
+    .eq("id",id)
+    .eq("hospital_id",String(hospital_id))
+    .maybeSingle()
+
+    if(err) throw err;
+
+    if(!details || details.status!=="PENDING") return{
+        message:"Wrong Approve Request."
+    }
+
+    const {error} = await supabase
+    .from('Approval_Requests')
+    .update({'status':'APPROVED'})
+    .eq("id",id)
+
+    if(error) throw error;
+
+    const {name,address,phone,email}=details;
+
+    const {data:hospital_staff,error:err1}=await supabase
+    .from("Staff")
+    .insert([{
+        id,
+        hospital_id,
+        phone,
+        name,
+        address,
+        email
+    }])
+    .select()
+    .maybeSingle();
+    if(err1) throw err1;
+    return {
+        details:hospital_staff,
+        message:"Staff Approved"
+    }
+
+};
+
+export const RejectRequest=async(id,hospital_id)=>{
+    const { data:details, error:err } = await supabase
+    .from('Approval_Requests')
+    .select()
+    .eq("id",id)
+    .eq("hospital_id",hospital_id)
+    .single()
+    
+    if(err) throw err;
+
+    if(!details || details.status!=="PENDING") return{
+        message:"Wrong Reject Request."
+    }
+
+    const {error} = await supabase
+        .from('Approval_Requests')
+        .update({'status':'REJECTED'})
+        .eq("id",id)
+
+    if(error) throw error;
+
+    const { data, error:err1 } = await supabaseAdmin.auth.admin.deleteUser(id);
+    if(err1) throw err1;
+    return { message: "Request Rejected Successfully." };
+
+};
