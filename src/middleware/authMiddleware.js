@@ -1,10 +1,19 @@
-export const authenticate = (req, res, next) => {
-  console.log("SESSION:", req.session);
-  console.log("COOKIES:", req.headers.cookie);
-  if (!req.session || !req.session.user) {
-    return res.status(401).json({ message: "Unauthorized" });
+import { supabase } from "../utils/supabase.js";
+
+export const authenticate = async (req, res, next) => {
+  const token = req.cookies.access_token;
+
+  if (!token) {
+    return res.status(401).json({ error: "Not authenticated" });
   }
 
-  req.user = req.session.user;
+  const { data, error } = await supabase.auth.getUser(token);
+
+  if (error) {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+
+  req.user = data.user;
   next();
 };
+

@@ -26,7 +26,10 @@ export const PatientSignin=async(name,email,address,phone,password)=>{
     .select()
     .single();
     if(err) throw err;
-    return Patient;
+    return {
+        session:data.session,
+        Patient
+    };
 };
 
 export const DoctorSignin=async(name,email,address,phone,password,speciality,hospital_id)=>{
@@ -58,7 +61,10 @@ export const DoctorSignin=async(name,email,address,phone,password,speciality,hos
     .select()
     .single();
     if(err) throw err;
-    return doctor;
+    return {
+        session:data.session,
+        doctor
+    };
 };
 
 export const HospitalSignin=async(name,email,phone,password,address)=>{
@@ -87,7 +93,10 @@ export const HospitalSignin=async(name,email,phone,password,address)=>{
     .select()
     .single();
     if(err) throw err;
-    return hospital;
+    return{
+        session:data.session,
+     hospital
+    };
 };
 
 export const StaffSignin=async(hospital_id,name,email,phone,password,address)=>{
@@ -118,7 +127,9 @@ export const StaffSignin=async(hospital_id,name,email,phone,password,address)=>{
     .select()
     .single();
     if(err) throw err;
-    return hospital_staff;
+    return{
+        session:data.session,
+     hospital_staff};
 };
 
 export const PatientLogin = async (email, password) => {
@@ -139,6 +150,7 @@ export const PatientLogin = async (email, password) => {
     return {
         userId: data.user.id,
         patient,
+        session:data.session,
         role: 'patient'
     };
 };
@@ -161,6 +173,7 @@ export const DoctorLogin = async (email, password) => {
     return {
         userId: data.user.id,
         doctor,
+         session:data.session,
         role: 'doctor'
     };
 };
@@ -183,6 +196,7 @@ export const HospitalLogin = async (email, password) => {
     return {
         userId: data.user.id,
         hospital,
+         session:data.session,
         role: 'hospital'
     };
 };
@@ -205,6 +219,7 @@ export const StaffLogin=async(email,password)=>{
     return {
         userId: data.user.id,
         staff,
+         session:data.session,
         role: 'hospital-staff'
     };
 };

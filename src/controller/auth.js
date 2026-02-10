@@ -16,7 +16,7 @@ class Auth{
     approve = async (req, res, next) => {
         let { role, id } = req.params;
         let hospital_id = req.user.id;
-
+        console.log(hospital_id);
         id = id?.trim();
         hospital_id = hospital_id?.trim();
         try {
@@ -60,9 +60,26 @@ class Auth{
             })
         }
         const patient=await PatientSignin(name,email,address,phone,password);
+          const { access_token, refresh_token } = patient.session;
+
+    res.cookie("access_token", access_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 1000,
+    });
+
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
         return res.status(200).json({
         message:"patient signin succesfull",
-        patient
+        patient,
+        access_token,
+        refresh_token
         })
 
         } catch (error) {
@@ -80,9 +97,26 @@ class Auth{
             })
         }
         const doctor=await DoctorSignin(name,email,address,phone,password,speciality,hospital_id);
+          const { access_token, refresh_token } = doctor.session;
+
+    res.cookie("access_token", access_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 1000,
+    });
+
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
         return res.status(200).json({
         message:"Doctor registration request send successfully.",
-        doctor
+        doctor,
+        access_token,
+        refresh_token
         })
 
         } catch (error) {
@@ -100,9 +134,26 @@ class Auth{
             })
         }
         const hospital=await HospitalSignin(name,email,phone,password,address);
+          const { access_token, refresh_token } = hospital.session;
+
+    res.cookie("access_token", access_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 1000,
+    });
+
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
         return res.status(200).json({
         message:"hospital signin succesfull",
-        hospital
+        hospital,
+        access_token,
+        refresh_token
         })
 
         } catch (error) {
@@ -120,9 +171,26 @@ class Auth{
                     })
             }
             const staff=await StaffSignin(hospital_id,name,email,phone,password,address);
+              const { access_token, refresh_token } = staff.session;
+
+    res.cookie("access_token", access_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 1000,
+    });
+
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
             return res.status(200).json({
                 message:"Staff registration request send succesfully.",
-                staff
+                staff,
+                access_token,
+                refresh_token
             })
         }catch(error){
             next(error);
@@ -138,20 +206,30 @@ class Auth{
                 });
             }
             const result = await PatientLogin(email, password);
+            const { access_token, refresh_token } = result.session;
+
+    res.cookie("access_token", access_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 1000,
+    });
+
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
             
-            req.session.user={
-                id: result.userId,
-                role: result.role,
-                name: result.patient.name
-            };
-            req.session.save((err) => {
-                if (err) return next(err);
 
                 return res.status(200).json({
                     message: "Login successful",
-                    ...result
+                    ...result,
+                    access_token,
+                    refresh_token
+
                 });
-            });
 
         } catch (error) {
             next(error);
@@ -167,21 +245,31 @@ class Auth{
                 });
             }
             const result = await DoctorLogin(email, password);
+              const { access_token, refresh_token } = result.session;
 
-            req.session.user = {
-                id: result.userId,
-                role: result.role,
-                name: result.doctor.name    
-            };
+    res.cookie("access_token", access_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 1000,
+    });
 
-            req.session.save((err) => {
-                if (err) return next(err);
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
+
+           
                 return res.status(200).json({
                     message: "Login successful",
-                    ...result
+                    ...result,
+                    access_token,
+                    refresh_token
                 });
-            });
+
         } catch (error) {
             next(error);
         }
@@ -197,22 +285,29 @@ class Auth{
                 });
             }
             const result = await HospitalLogin(email, password);
+            const { access_token, refresh_token } = result.session;
+            console.log(access_token);
+    res.cookie("access_token", access_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 1000,
+    });
 
-            req.session.user = {
-                id: result.userId,
-                role: result.role,
-                name: result.hospital.name  
-            };
-
-
-            req.session.save((err) => {
-                if (err) return next(err);
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
                 return res.status(200).json({
                     message: "Login successful",
-                    ...result
+                    ...result,
+                    access_token,
+                    refresh_token
                 });
-            });
+        
         } catch (error) {
             next(error);
         }
@@ -227,21 +322,30 @@ class Auth{
                 });
             }
             const result = await StaffLogin(email, password);
+            const { access_token, refresh_token } = result.session;
 
-            req.session.user = {
-                id: result.userId,
-                role: result.role,
-                name: result.staff.name  
-            };
+    res.cookie("access_token", access_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 1000,
+    });
 
-            req.session.save((err) => {
-                if (err) return next(err);
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+           
 
                 return res.status(200).json({
                     message: "Login successful",
-                    ...result
+                    ...result,
+                    access_token,
+                    refresh_token
                 });
-            });
+          
         } catch (error) {
             next(error);
         }
